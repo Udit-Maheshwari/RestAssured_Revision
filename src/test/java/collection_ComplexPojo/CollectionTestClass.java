@@ -5,10 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.restassured.RestAssured;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import org.hamcrest.MatcherAssert;
+import org.hamcrest.Matchers;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class CollectionTestClass {
@@ -30,30 +31,30 @@ public class CollectionTestClass {
         body.setMode("raw");
         body.setRaw("{\"data\": \"123\"}");
 
-        Request request = new Request();
+        RequestRequest request = new RequestRequest();
         request.setURL("https://postman-echo.com/post");
         request.setMethod("POST");
         request.setDescription("This is a sample POST Request");
         request.setHeader(headerList);
         request.setBody(body);
 
-        RequestRoot requestRoot = new RequestRoot();
+        RequestRootRequest requestRoot = new RequestRootRequest();
         requestRoot.setName("Sample POST Request");
         requestRoot.setRequest(request);
-        List<RequestRoot> requestRootList = new ArrayList<>();
+        List<RequestRootRequest> requestRootList = new ArrayList<>();
         requestRootList.add(requestRoot);
 
-        Item item = new Item();
+        ItemRequest item = new ItemRequest();
         item.setName("This is a folder");
         item.setItem(requestRootList);
-        List<Item> itemList = new ArrayList<>();
+        List<ItemRequest> itemList = new ArrayList<>();
         itemList.add(item);
 
-        CollectionNested collectionNested = new CollectionNested();
+        CollectionRequest collectionNested = new CollectionRequest();
         collectionNested.setInfo(info);
         collectionNested.setItem(itemList);
 
-        CollectionRoot collectionRoot = new CollectionRoot();
+        CollectionRootRequest collectionRoot = new CollectionRootRequest();
         collectionRoot.setCollection(collectionNested);
 
         ObjectMapper objectMapper = new ObjectMapper();
@@ -83,5 +84,17 @@ public class CollectionTestClass {
               .extract().response();
 
         System.out.println("Get Response is ==>" + getResponse.prettyPrint());
+
+        CollectionRootResponse collectionRootResponse = getResponse.as(CollectionRootResponse.class);
+        System.out.println("Url protocol value is -->" + collectionRootResponse.getCollection()
+                .getItem().get(0).getItem().get(0).getRequest().getURL().getProtocol());
+        String responseUrl = collectionRootResponse.getCollection()
+                .getItem().get(0).getItem().get(0).getRequest().getURL().getRaw();
+        System.out.println("Response URL Value is --> " + responseUrl);
+
+        String requestUrl = requestRoot.getRequest().getURL();
+        System.out.println("Request URL Value is --> " + requestUrl);
+
+        MatcherAssert.assertThat(responseUrl, Matchers.equalTo(responseUrl));
     }
 }
